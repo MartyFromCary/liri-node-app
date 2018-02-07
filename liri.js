@@ -6,11 +6,47 @@
 "use strict";
 const keys = require("./keys.js");
 
+const Twitter = require("twitter");
+const twitter = new Twitter({
+	consumer_key: keys.twitter.consumer_key,
+	consumer_secret: keys.twitter.consumer_secret,
+	access_token_key: keys.twitter.access_token_key,
+	access_token_secret: keys.twitter.access_token_secret
+});
+
 const Spotify = require("node-spotify-api");
 const spotify = new Spotify({
 	id: keys.spotify.id,
 	secret: keys.spotify.secret
 });
+
+function myLog(text) {
+	console.log(text);
+	return 0;
+}
+
+function myTweets(nrResults) {
+	twitter.get(
+		"statuses/user_timeline",
+		{
+			count: nrResults || 20
+		},
+		(err, data) => {
+			if (err) {
+				return myLog(`Error occurred: ${err}`);
+			}
+			if (data.length == 0) {
+				return myLog("Sorry, no texts retrieved");
+			}
+			data.forEach(Item => {
+				myLog(`Text: ${Item.text}`);
+				myLog(`Date: ${Item.created_at}`);
+				myLog("");
+			});
+			return 0;
+		}
+	);
+}
 
 function spotifyThisSong(song, nrResults) {
 	spotify.search(
@@ -21,24 +57,31 @@ function spotifyThisSong(song, nrResults) {
 		},
 		(err, data) => {
 			if (err) {
-				return console.log(`Error occurred: ${err}`);
+				return myLog(`Error occurred: ${err}`);
 			}
 			if (data.tracks.items.length == 0) {
-				console.log(`Sorry, nothing found for ${song}`);
+				return myLog(`Sorry, nothing found for ${song}`);
 			}
 			data.tracks.items.forEach(Item => {
 				let artists = [];
 				Item.artists.forEach(Artist => {
 					artists.push(Artist.name);
 				});
-				console.log(`Artist(s): ${artists.join(", ")}`);
-				console.log(`Name:      ${Item.name}`);
-				console.log(`Preview:   ${Item.external_urls.spotify}`);
-				console.log(`Album:     ${Item.album.name}`);
-				console.log("");
+				myLog(`Artist(s): ${artists.join(", ")}`);
+				myLog(`Name:      ${Item.name}`);
+				myLog(`Preview:   ${Item.external_urls.spotify}`);
+				myLog(`Album:     ${Item.album.name}`);
+				myLog("");
 			});
+			return 0;
 		}
 	);
 }
+
+function movieThis(){
+
+}
+
+myTweets();
 spotifyThisSong();
-//console.log(keys.twitter);
+movieThis();
