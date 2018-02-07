@@ -20,6 +20,8 @@ const spotify = new Spotify({
 	secret: keys.spotify.secret
 });
 
+const request = require('request');
+
 function myLog(text) {
 	console.log(text);
 	return 0;
@@ -78,10 +80,34 @@ function spotifyThisSong(song, nrResults) {
 	);
 }
 
-function movieThis(){
+function movieThis(movie) {
+	let url = "http://www.omdbapi.com/?";
+	url += "t=" + (movie || "Mr. Nobody");
+	url += "&type=movie";
+	url += "&plot=full";
+	url += "&apikey=trilogy";
+	request(url, (err, response, text) => {
+		if (err) {
+			return myLog(`Error occurred: ${err}`);
+		}
+		let data = JSON.parse(text);
 
+		myLog(`Title: ${data.Title}`);
+		myLog(`Year: ${data.Year}`);
+		myLog(`IMDB Rating: ${data.imdbRating}`);
+		data.Ratings.forEach(rating => {
+			if (rating.Source === "Rotten Tomatoes") {
+				myLog(`${rating.Source} Rating: ${rating.Value}`);
+			}
+		});
+		myLog(`Country: ${data.Country}`);
+		myLog(`Language: ${data.Language}`);
+		myLog(`Plot: ${data.Plot}`);
+		myLog(`Actors: ${data.Actors}`);
+		return 0;
+	});
 }
 
-myTweets();
-spotifyThisSong();
-movieThis();
+//myTweets();
+//spotifyThisSong();
+movieThis("Blade Runner 2049");
