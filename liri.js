@@ -1,8 +1,3 @@
-//my-tweets
-//spotify-this-song
-//movie-this
-//do-what-it-says
-
 "use strict";
 const keys = require("./keys.js");
 
@@ -20,7 +15,10 @@ const spotify = new Spotify({
 	secret: keys.spotify.secret
 });
 
-const request = require('request');
+const request = require("request");
+
+const fs = require("fs");
+const readline = require("readline");
 
 function myLog(text) {
 	console.log(text);
@@ -31,7 +29,7 @@ function myTweets(nrResults) {
 	twitter.get(
 		"statuses/user_timeline",
 		{
-			count: nrResults || 20
+			count: nrResults || "20"
 		},
 		(err, data) => {
 			if (err) {
@@ -55,14 +53,14 @@ function spotifyThisSong(song, nrResults) {
 		{
 			query: song || "The Sign/Ace of Base",
 			type: "track",
-			limit: nrResults || 1
+			limit: nrResults || "1"
 		},
 		(err, data) => {
 			if (err) {
 				return myLog(`Error occurred: ${err}`);
 			}
 			if (data.tracks.items.length == 0) {
-				return myLog(`Sorry, nothing found for ${song}`);
+				return myLog(`Sorry, nothing found for '${song}'`);
 			}
 			data.tracks.items.forEach(Item => {
 				let artists = [];
@@ -108,6 +106,38 @@ function movieThis(movie) {
 	});
 }
 
-//myTweets();
-//spotifyThisSong();
-movieThis("Blade Runner 2049");
+function doWhatItSays(argv) {
+	switch (argv[0]) {
+		case "my-tweets":
+			return myTweets(argv[1]);
+		case "movie-this":
+			return movieThis(argv[1]);
+		case "spotify-this-song":
+			return spotifyThisSong(argv[1], argv[2]);
+	}
+	return myLog(`Unknown command: ${argv[0]}`);
+}
+
+process.argv.shift();
+process.argv.shift();
+if (process.argv[0] !== "do-what-it-says") {
+	return doWhatItSays(process.argv);
+}
+
+const doWhatItSaysFile = process.argv[1] || "random.txt";
+fs.access(doWhatItSaysFile, fs.constants.R_OK, err => {
+	if (err) {
+		myLog(`no read access for ${doWhatItSaysFile}!`);
+		process.exit(1);
+	}
+});
+
+var lineReader = readline.createInterface({
+	input: fs.createReadStream(doWhatItSaysFile)
+});
+
+lineReader.on("line", line => {
+	doWhatItSays(line.split(","));
+});
+
+return 0;
