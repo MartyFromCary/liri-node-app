@@ -20,8 +20,11 @@ const request = require("request");
 const fs = require("fs");
 const readline = require("readline");
 
+const logger = fs.createWriteStream("log.txt", { flags: "a" });
+
 function myLog(text) {
 	console.log(text);
+	logger.write(text + "\n");
 	return 0;
 }
 
@@ -82,7 +85,6 @@ function movieThis(movie) {
 	let url = "http://www.omdbapi.com/?";
 	url += "t=" + (movie || "Mr. Nobody");
 	url += "&type=movie";
-	url += "&plot=full";
 	url += "&apikey=trilogy";
 	request(url, (err, response, text) => {
 		if (err) {
@@ -107,6 +109,7 @@ function movieThis(movie) {
 }
 
 function doWhatItSays(argv) {
+	myLog(argv.join(" "));
 	switch (argv[0]) {
 		case "my-tweets":
 			return myTweets(argv[1]);
@@ -120,9 +123,11 @@ function doWhatItSays(argv) {
 
 process.argv.shift();
 process.argv.shift();
+
 if (process.argv[0] !== "do-what-it-says") {
 	return doWhatItSays(process.argv);
 }
+myLog(process.argv.join(" "));
 
 const doWhatItSaysFile = process.argv[1] || "random.txt";
 fs.access(doWhatItSaysFile, fs.constants.R_OK, err => {
